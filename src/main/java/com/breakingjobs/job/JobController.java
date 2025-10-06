@@ -1,5 +1,7 @@
 package com.breakingjobs.job;
 
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,31 +12,48 @@ import java.util.List;
 import java.util.Objects;
 
 @RestController
+@RequestMapping("/jobs")
+@AllArgsConstructor
+@NoArgsConstructor
 public class JobController {
 
     private JobService jobService;
 
-    public JobController(JobService jobService) {
-        this.jobService = jobService;
-    }
-
-    @GetMapping("/jobs")
+    @GetMapping()
     public ResponseEntity<List<Job>> findAll() {
         return new ResponseEntity<>(jobService.findAll(), HttpStatus.OK);
     }
 
-    @GetMapping("jobs/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<Job> getJobById(@PathVariable Long id) {
         Job job =  jobService.findById(id);
         if(job != null){
             return new ResponseEntity<>(job, HttpStatus.OK);
         }
-        return new ResponseEntity<>(new Job(0L, "TestJob", "TestJob", "200", "2000", "Remote"), HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(new Job(), HttpStatus.NOT_FOUND);
     }
 
-    @PostMapping("/jobs")
+    @PostMapping()
     public ResponseEntity<String> createJob(@RequestBody Job job) {
-        jobService.create(job);
+        jobService.createJob(job);
         return ResponseEntity.accepted().body("Job created");
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteJobById(@PathVariable Long id) {
+        boolean deleted = jobService.deleteJobById(id);
+        if(deleted){
+            return new ResponseEntity<>("Job deleted", HttpStatus.OK);
+        }
+        return new ResponseEntity<>("Job not found", HttpStatus.NOT_FOUND);
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<String> updateJobById(@PathVariable Long id, @RequestBody Job job) {
+        boolean updated = jobService.updateJob(id, job);
+        if(updated){
+            return new ResponseEntity<>("Job updated", HttpStatus.OK);
+        }
+        return new ResponseEntity<>("Job not found", HttpStatus.NOT_FOUND);
     }
 }
