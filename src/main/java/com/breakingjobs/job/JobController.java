@@ -2,6 +2,7 @@ package com.breakingjobs.job;
 
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,11 +14,10 @@ import java.util.Objects;
 
 @RestController
 @RequestMapping("/jobs")
-@AllArgsConstructor
-@NoArgsConstructor
+@RequiredArgsConstructor
 public class JobController {
 
-    private JobService jobService;
+    private final JobService jobService;
 
     @GetMapping()
     public ResponseEntity<List<Job>> findAll() {
@@ -48,7 +48,7 @@ public class JobController {
         return new ResponseEntity<>("Job not found", HttpStatus.NOT_FOUND);
     }
 
-    @PatchMapping("/{id}")
+    @PutMapping("/{id}")
     public ResponseEntity<String> updateJobById(@PathVariable Long id, @RequestBody Job job) {
         boolean updated = jobService.updateJob(id, job);
         if(updated){

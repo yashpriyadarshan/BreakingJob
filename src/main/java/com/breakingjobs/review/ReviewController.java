@@ -37,4 +37,20 @@ public class ReviewController {
         }
         return ResponseEntity.notFound().build();
     }
+
+    @PutMapping("/reviews/{reviewId}")
+    public ResponseEntity<String> updateReview(@PathVariable Long companyId, @PathVariable Long reviewId, @RequestBody Review review) {
+        if(reviewService.updateReview(companyId, reviewId, review)) {
+            return ResponseEntity.ok().body("Review updated Successfully");
+        }
+        return  new ResponseEntity<>("Review updated Failed", HttpStatus.NOT_FOUND);
+    }
+
+    @DeleteMapping("/reviews/{reviewId}")
+    public ResponseEntity<String> deleteReview(@PathVariable Long companyId, @PathVariable Long reviewId) {
+        if(reviewService.deleteReview(companyId, reviewId)) {
+            return ResponseEntity.ok().body("Review deleted Successfully");
+        }
+        return  new ResponseEntity<>("Review deleted Failed", HttpStatus.NOT_FOUND);
+    }
 }
