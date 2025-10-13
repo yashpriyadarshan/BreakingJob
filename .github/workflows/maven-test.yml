@@ -1,0 +1,47 @@
+# This workflow builds and tests the Spring Boot microservices project using H2 database for testing.
+
+name: Build and Test with H2
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push events for the "main" branch
+  push:
+    branches: [ "main" ]
+  # Triggers the workflow on pull request events targeting the "main" branch
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout the repository code
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # 2. Set up JDK 21
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      # 3. Cache Maven packages
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+      # 4. Build and test each microservice individually
+      - name: Build and Test CompanyMS
+        run: mvn -B package --file CompanyMS/pom.xml
+
+      - name: Build and Test JobMS
+        run: mvn -B package --file JobMS/pom.xml
+
+      - name: Build and Test ReviewMS
+        run: mvn -B package --file ReviewMS/pom.xml
