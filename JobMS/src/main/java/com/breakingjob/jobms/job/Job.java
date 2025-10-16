@@ -1,5 +1,6 @@
 package com.breakingjob.jobms.job;
 
+import com.breakingjob.jobms.job.external.Company;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -23,5 +24,4 @@ public class Job {
     private String location;
 
     private Long companyId;
-
 }

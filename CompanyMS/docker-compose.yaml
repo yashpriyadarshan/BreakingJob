@@ -5,7 +5,6 @@ services:
     environment:
       POSTGRES_USER: gharlander
       POSTGRES_PASSWORD: gharlander
-      POSTGRES_DB: jobapp
       PGDATA: /data/postgres
       TZ: Asia/Kolkata
       PGTZ: Asia/Kolkata
