@@ -1,0 +1,114 @@
+name: BreakingJob CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  # Job to build and test Java microservices in parallel
+  java-services:
+    name: Build & Test ${{ matrix.service }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service: [auth-service, company-service-ms, user-service-ms, job-service-ms]
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: testdb
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DB_URL: jdbc:postgresql://localhost:5432/testdb
+      DB_USERNAME: postgres
+      DB_PASSWORD: password
+      JWT_SECRET: mySecretKey123456789shbfhbvfshvbsfhvskhbfhusdbvihsbibsadihv
+      CORS_ORIGINS: http://localhost:5173
+      AZURE_CONNECTION_STRING: UseDevelopmentStorage=true
+      AUTH_SERVICE: http://localhost:8080
+      USER_SERVICE: http://localhost:8081
+      COMPANY_SERVICE: http://localhost:8082
+      EDDA_SERVICE: http://localhost:8000
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Build and Test with Maven
+        run: |
+          cd ${{ matrix.service }}
+          chmod +x mvnw
+          ./mvnw clean test
+
+  # Job to verify and build the React Frontend
+  frontend-service:
+    name: Build & Lint Frontend
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository with submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd frontend
+          npm ci
+
+      - name: Run Build
+        run: |
+          cd frontend
+          npm run build
+
+  # Job to check python syntax for EddaAI
+  edda-ai-service:
+    name: Syntax Check EddaAI
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+          cache-dependency-path: EddaAI/requirements.txt
+
+      - name: Install dependencies
+        run: |
+          cd EddaAI
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Compile and Syntax Check Python Files
+        run: |
+          cd EddaAI
+          python -m py_compile *.py
