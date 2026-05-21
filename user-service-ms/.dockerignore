@@ -1,0 +1,12 @@
+.git
+.gitignore
+.idea
+.mvn
+.vscode
+*.md
+uploads/
+src/test/
+*.iml
+*.iws
+*.ipr
+.env

@@ -1,0 +1,18 @@
+# IntelliJ
+.idea/
+
+# Maven build folders
+target/
+
+# Python
+.venv/
+__pycache__/
+
+# Gateway build files (if needed)
+gateway/target/
+gateway/.idea/
+
+# Sensitive infrastructure configs
+infrastructure/pgbouncer/pgbouncer.ini
+infrastructure/pgbouncer/userlist.txt
+.env
