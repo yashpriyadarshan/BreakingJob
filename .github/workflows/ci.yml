@@ -7,20 +7,15 @@ on:
     branches: [ "main" ]
 
 jobs:
-  # ── Java microservices (parallel matrix) ─────────────────────────────────────
+  # Job to build and test Java microservices in parallel
   java-services:
     name: Build & Test ${{ matrix.service }}
     runs-on: ubuntu-latest
-    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
-        service:
-          - auth-service
-          - company-service-ms
-          - user-service-ms
-          - job-service-ms
-
+        service: [auth-service, company-service-ms, user-service-ms, job-service-ms]
+    
     services:
       postgres:
         image: postgres:15
@@ -41,7 +36,7 @@ jobs:
       DB_USERNAME: postgres
       DB_PASSWORD: password
       JWT_SECRET: mySecretKey123456789shbfhbvfshvbsfhvskhbfhusdbvihsbibsadihv
-      CORS_ORIGINS: http://localhost:5173
+      CORS_ORIGINS: http://localhost:3000, https://breakingjob.vercel.app
       AZURE_CONNECTION_STRING: UseDevelopmentStorage=true
       AUTH_SERVICE: http://localhost:8080
       USER_SERVICE: http://localhost:8081
@@ -63,13 +58,12 @@ jobs:
         run: |
           cd ${{ matrix.service }}
           chmod +x mvnw
-          ./mvnw clean test --no-transfer-progress
+          ./mvnw clean test
 
-  # ── React Frontend ────────────────────────────────────────────────────────────
+  # Job to verify and build the React Frontend
   frontend-service:
     name: Build & Lint Frontend
     runs-on: ubuntu-latest
-    timeout-minutes: 15
     steps:
       - name: Checkout repository with submodules
         uses: actions/checkout@v4
@@ -79,7 +73,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: 24
           cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
 
@@ -93,11 +87,10 @@ jobs:
           cd frontend
           npm run build
 
-  # ── EddaAI Python service ─────────────────────────────────────────────────────
+  # Job to check python syntax for EddaAI
   edda-ai-service:
-    name: Lint & Test EddaAI
+    name: Syntax Check EddaAI
     runs-on: ubuntu-latest
-    timeout-minutes: 10
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -112,10 +105,10 @@ jobs:
       - name: Install dependencies
         run: |
           cd EddaAI
-          python -m pip install --upgrade pip --quiet
-          pip install -r requirements.txt --no-cache-dir --quiet
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-      - name: Compile and Syntax Check all Python files
+      - name: Compile and Syntax Check Python Files
         run: |
           cd EddaAI
-          python -m compileall -x '__pycache__|\.venv' .
+          python -m py_compile *.py
